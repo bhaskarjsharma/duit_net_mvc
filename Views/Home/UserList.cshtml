@@ -1,0 +1,12 @@
+﻿@model IEnumerable<duit_net_mvc.Models.User>
+
+@{
+    ViewData["Title"] = "UserList";
+}
+
+<h1>UserList</h1>
+@foreach(var user in Model)
+{
+    <h3>@user.Name - @user.Email</h3>
+}
+
