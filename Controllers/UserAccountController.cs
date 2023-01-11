@@ -72,7 +72,7 @@ namespace duit_net_mvc.Controllers
             }
             else
             {
-                // login unsuccessful
+                // login unsuccessful....
                 return RedirectToAction("Account", "Login");
             }
         }
