@@ -1,4 +1,5 @@
 ﻿using duit_net_mvc.Models;
+using duit_net_mvc.Models.ViewModel;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -29,12 +30,29 @@ namespace duit_net_mvc.Controllers
             List<User> users = db.User.ToList();
             return View(users);
         }
-
-        public IActionResult Apply()
+        [HttpGet]
+        public IActionResult Apply(int id)
         {
-            return View();
-        }
+            Advertisement advertisement = db.Advertisement.Find(id);
+            if(advertisement != null)
+            {
+                ViewBag.advt_id = id;
+                ViewBag.advt_title = advertisement.Title;
+                TempData["data"] = "data";
 
+                ApplicationViewModel newVM = new()
+                {
+                    AdvertisementId = advertisement.AdvertisementId
+                };
+                return View(newVM);
+            }
+            else
+            {
+                TempData["error_msg"] = "Invalid Advertisement";
+                return RedirectToAction("Index");
+            }
+        }
+        [HttpPost]
         public IActionResult Apply(int advertisementID, string userName, List<IFormFile> fileUploads)
         {
             Advertisement advertisement = db.Advertisement.Find(advertisementID);

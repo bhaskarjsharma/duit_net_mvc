@@ -2,8 +2,8 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
+using Microsoft.EntityFrameworkCore;
 
 namespace duit_net_mvc.Controllers
 {
@@ -55,8 +55,15 @@ namespace duit_net_mvc.Controllers
                     new Claim(ClaimTypes.Name, user.Name),
                     new Claim(ClaimTypes.Email, user.Email),
                     new Claim(ClaimTypes.MobilePhone, user.ContactNumber),
-                    new Claim(ClaimTypes.Role, "NormalUser"),
                 };
+
+
+                if(user.Name == "AdminUser")
+                {
+                    claims.Add(new Claim(ClaimTypes.Role, "Admin"));
+                }
+
+
                 var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
 
                 var authProperties = new AuthenticationProperties
@@ -68,7 +75,7 @@ namespace duit_net_mvc.Controllers
                 await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(claimsIdentity),
                     authProperties);
 
-                return RedirectToAction("Home", "Index");
+                return RedirectToAction("Index", "Home");
             }
             else
             {
@@ -81,6 +88,16 @@ namespace duit_net_mvc.Controllers
         public IActionResult Forbidden()
         {
             return View();
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> LogOff()
+        {
+            // HttpContext.Session.Clear();
+            // Clear the existing external cookie
+            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+            return RedirectToAction("Index", "Home");
         }
     }
 }

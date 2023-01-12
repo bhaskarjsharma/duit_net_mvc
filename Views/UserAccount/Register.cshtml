@@ -3,5 +3,39 @@
     ViewData["Title"] = "Register";
 }
 
-<h1>Register</h1>
+<h1>Register User</h1>
+
+<form asp-controller="UserAccount" asp-action="Register">
+    <div class="row mb-3">
+        <label for="in_num" class="col-md-2 col-form-label">Name</label>
+        <div class="col-md-10">
+            @Html.Editor("name", new { htmlAttributes = new { @class = "form-control", @required = "required" } })
+            @Html.ValidationMessage("Name", "Please Enter Name", new { @class = "text-danger" })
+        </div>
+    </div>
+    <div class="row mb-3">
+        <label for="in_num" class="col-md-2 col-form-label">Email</label>
+        <div class="col-md-10">
+            @Html.Editor("email", new { htmlAttributes = new { @class = "form-control", @required = "required" } })
+            @Html.ValidationMessage("Email", "Please Enter Description", new { @class = "text-danger" })
+        </div>
+    </div>
+    <div class="row mb-3">
+        <label for="in_num" class="col-md-2 col-form-label">Password</label>
+        <div class="col-md-10">
+            @Html.Password("password", new { htmlAttributes = new { @class = "form-control", @required = "required" } })
+            @Html.ValidationMessage("Password", "Please Enter Password", new { @class = "text-danger" })
+        </div>
+    </div>
+    <div class="row mb-3">
+        <label for="in_num" class="col-md-2 col-form-label">Contact Number</label>
+        <div class="col-md-10">
+            @Html.Editor("contact", new { htmlAttributes = new { @class = "form-control", @required = "required" } })
+            @Html.ValidationMessage("contact", "Please Enter ContactNumber", new { @class = "text-danger" })
+        </div>
+    </div>
+    <div class="col-12">
+        <button type="submit" class="btn btn-primary">Submit</button>
+    </div>
+</form>
 

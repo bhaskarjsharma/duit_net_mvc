@@ -1,0 +1,37 @@
+﻿@model duit_net_mvc.Models.ViewModel.ApplicationViewModel
+@{
+    ViewData["Title"] = "Apply";
+}
+
+<h1>Apply against advertisement No: @ViewBag.advt_id -  @ViewBag.advt_title</h1>
+
+@TempData["data"]
+
+<form asp-controller="Home" asp-action="Apply" enctype="multipart/form-data">
+
+    <input type="hidden" name="advertisementID" value=@ViewBag.advt_id />
+
+     <input type="hidden" name="advertisementID" value=@Model.AdvertisementId />
+
+    <div class="row mb-3">
+        <label for="in_num" class="col-md-2 col-form-label">Applicant Name</label>
+        <div class="col-md-10">
+            @Html.Editor("userName", new { htmlAttributes = new { @class = "form-control", @required = "required" } })
+            @Html.ValidationMessage("userName", "Please Enter Title", new { @class = "text-danger" })
+        </div>
+    </div>
+    <div class="row mb-3">
+            <label class="col-form-label col-md-2">Attachment (if any)</label>
+            <div class="col-auto">
+            <input class="form-control" type="file" id="uploadedFile" name="fileUploads" multiple aria-describedby="fileUploadType" />
+            </div>
+            <div class="col-auto">
+                <span id="fileUploadType" class="form-text">
+                    Only image or PDF allowed. Multiple files with maximum total size 50 MB
+                </span>
+            </div>
+        </div>
+    <div class="col-12">
+        <button type="submit" class="btn btn-primary">Submit</button>
+    </div>
+</form>

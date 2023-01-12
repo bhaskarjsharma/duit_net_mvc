@@ -1,0 +1,44 @@
+﻿
+@{
+    ViewData["Title"] = "AddAdvertisement";
+}
+
+<h1>Add Advertisement</h1>
+
+<div class="row row-cols-1 align-items-start mt-5">
+
+</div>
+
+<form asp-controller="Admin" asp-action="AddAdvertisement">
+    <div class="row mb-3">
+         <label for="in_num" class="col-md-2 col-form-label">Title</label>
+         <div class="col-md-10">
+            @Html.Editor("Title", new { htmlAttributes = new { @class = "form-control", @required = "required" } })
+            @Html.ValidationMessage("Title", "Please Enter Title", new { @class = "text-danger" })
+         </div>
+    </div>
+    <div class="row mb-3">
+        <label for="in_num" class="col-md-2 col-form-label">Description</label>
+         <div class="col-md-10">
+            @Html.Editor("Description", new { htmlAttributes = new { @class = "form-control", @required = "required" } })
+            @Html.ValidationMessage("Description", "Please Enter Description", new { @class = "text-danger" })
+         </div>
+    </div>
+    <div class="row mb-3">
+        <label for="in_num" class="col-md-2 col-form-label">Start Date</label>
+         <div class="col-md-10">
+            <input type="datetime-local" name="StartDate" required />
+            @Html.ValidationMessage("Title", "Please Enter Start Date", new { @class = "text-danger" })
+         </div>
+    </div>
+    <div class="row mb-3">
+        <label for="in_num" class="col-md-2 col-form-label">End Date</label>
+         <div class="col-md-10">
+            <input type="datetime-local" name="EndDate" required />
+            @Html.ValidationMessage("EndDate", "Please Enter End Date", new { @class = "text-danger" })
+         </div>
+    </div>
+    <div class="col-12">
+        <button type="submit" class="btn btn-primary">Submit</button>
+    </div>
+</form>
