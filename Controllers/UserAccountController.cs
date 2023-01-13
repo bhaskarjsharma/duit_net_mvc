@@ -3,7 +3,9 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authorization;
 
 namespace duit_net_mvc.Controllers
 {
@@ -15,7 +17,8 @@ namespace duit_net_mvc.Controllers
             db = context;
         }
         [HttpGet]
-        public IActionResult Login()
+        [AllowAnonymous]
+        public IActionResult Index()
         {
             return View();
         }
@@ -24,63 +27,75 @@ namespace duit_net_mvc.Controllers
         {
             return View();
         }
+
         [HttpPost]
-        public string Register(string name, string email, string password, string contact)
+        [AllowAnonymous]
+        public IActionResult Register(string name, string email, string password, string contact)
         {
             User newUser = new User(); // creating object of class User with name newUser
 
             newUser.Email = email;  // calling setter function of parameter Email
-            newUser.Password = password;
+            newUser.Password = HashPassword(password); ;
             newUser.Name = name;
             newUser.ContactNumber = contact;
 
             db.User.Add(newUser);
             db.SaveChanges();
 
-            return "";
+            TempData["succ_msg"] = "Account has been successfully registerd. Please Login to continue";
+            return RedirectToAction("Index");
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [AllowAnonymous]
         public async Task<IActionResult> Login(string email, string password)
         {
 
-            User user = db.User.Where(m => m.Email == email && m.Password == password).First();
+            User user = db.User.Where(m => m.Email == email).First();
             if (user != null)
             {
-                // login successful
-                var claims = new List<Claim>
+                if (ValidatePassword(password, user.Password))
                 {
-                    new Claim("userid", user.UserId.ToString()),
-                    new Claim(ClaimTypes.Name, user.Name),
-                    new Claim(ClaimTypes.Email, user.Email),
-                    new Claim(ClaimTypes.MobilePhone, user.ContactNumber),
-                };
+                    // login successful
+                    var claims = new List<Claim>
+                    {
+                        new Claim("userid", user.UserId.ToString()),
+                        new Claim(ClaimTypes.Name, user.Name),
+                        new Claim(ClaimTypes.Email, user.Email),
+                        new Claim(ClaimTypes.MobilePhone, user.ContactNumber),
+                    };
 
 
-                if(user.Name == "AdminUser")
-                {
-                    claims.Add(new Claim(ClaimTypes.Role, "Admin"));
+                    if (user.Name == "AdminUser")
+                    {
+                        claims.Add(new Claim(ClaimTypes.Role, "Admin"));
+                    }
+
+
+                    var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+
+                    var authProperties = new AuthenticationProperties
+                    {
+                        AllowRefresh = true,
+                        IssuedUtc = DateTimeOffset.UtcNow,
+                    };
+
+                    await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(claimsIdentity),
+                        authProperties);
+
+                    return RedirectToAction("Index", "Home");
                 }
-
-
-                var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
-
-                var authProperties = new AuthenticationProperties
+                else
                 {
-                    AllowRefresh = true,
-                    IssuedUtc = DateTimeOffset.UtcNow,
-                };
-
-                await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(claimsIdentity),
-                    authProperties);
-
-                return RedirectToAction("Index", "Home");
+                    // login unsuccessful....gvh
+                    return RedirectToAction("Account", "Index");
+                }
             }
             else
             {
                 // login unsuccessful....gvh
-                return RedirectToAction("Account", "Login");
+                return RedirectToAction("Account", "Index");
             }
         }
 
@@ -97,7 +112,21 @@ namespace duit_net_mvc.Controllers
             // HttpContext.Session.Clear();
             // Clear the existing external cookie
             await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-            return RedirectToAction("Index", "Home");
+            return RedirectToAction("Index");
+        }
+
+        private static string GetRandomSalt()
+        {
+            return BCrypt.Net.BCrypt.GenerateSalt(12);
+        }
+        public static string HashPassword(string password)
+        {
+            // write manual codes or use existing security library
+            return BCrypt.Net.BCrypt.HashPassword(password, GetRandomSalt());
+        }
+        public static bool ValidatePassword(string password, string correctHash)
+        {
+            return BCrypt.Net.BCrypt.Verify(password, correctHash);
         }
     }
 }

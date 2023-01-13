@@ -18,7 +18,7 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
         options.ExpireTimeSpan = TimeSpan.FromMinutes(20);
         options.SlidingExpiration = true;
         options.AccessDeniedPath = "/UserAccount/Forbidden";
-        options.LoginPath = "/UserAccount/Login";
+        options.LoginPath = "/UserAccount/Index";
     });
 
 var app = builder.Build();
@@ -42,6 +42,6 @@ app.UseAuthorization();
 
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}");
+    pattern: "{controller=UserAccount}/{action=Index}/{id?}");
 
 app.Run();

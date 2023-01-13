@@ -1,18 +1,22 @@
 ﻿using duit_net_mvc.Models;
 using duit_net_mvc.Models.ViewModel;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Diagnostics;
 
 namespace duit_net_mvc.Controllers
 {
+    [Authorize]
     public class HomeController : Controller
     {
-        private readonly DatabaseContext db;
-        public HomeController(DatabaseContext context)
+        private readonly DatabaseContext db;  // Database Context
+        private readonly IWebHostEnvironment webHostEnvironment;  // to get server absolute paths
+        public HomeController(DatabaseContext context, IWebHostEnvironment webHostEnvironment)
         {
             db = context;
+            this.webHostEnvironment = webHostEnvironment;
         }
         public IActionResult Index()
         {
@@ -53,7 +57,7 @@ namespace duit_net_mvc.Controllers
             }
         }
         [HttpPost]
-        public IActionResult Apply(int advertisementID, string userName, List<IFormFile> fileUploads)
+        public async Task<ActionResult> Apply(int advertisementID, string userName, List<IFormFile> fileUploads)
         {
             Advertisement advertisement = db.Advertisement.Find(advertisementID);
 
@@ -66,17 +70,32 @@ namespace duit_net_mvc.Controllers
 
                 newApp.User = "user"; // info from current logged in user
 
+                string contentRootPath = webHostEnvironment.ContentRootPath; // will return path for the Content folder
+                string[] paths = { contentRootPath, "AppAttachments", advertisement.AdvertisementId.ToString() };
+                string fileSaveDir = Path.Combine(paths);
+                Directory.CreateDirectory(fileSaveDir);
+
+
                 List<ApplicationAttachment> attachments = new();
                 foreach (var item in fileUploads)
                 {
-                    ApplicationAttachment attachment = new()
+                    if (item.ContentType.Contains("image/") || item.ContentType == "application/pdf")
                     {
-                        FileName = item.FileName,
-                        FileType = item.ContentType,
-                        FilePath = ""
-                    };
+                        var fileName = Guid.NewGuid().ToString() + Path.GetExtension(item.FileName);
+                        string fileSavePath = Path.Combine(fileSaveDir, fileName);
 
-                    attachments.Add(attachment);
+                        ApplicationAttachment attachment = new()
+                        {
+                            FileName = fileName,
+                            FileType = item.ContentType,
+                            FilePath = fileSavePath
+                        };
+                        attachments.Add(attachment);
+
+                        // saving large file as stream
+                        using var stream = System.IO.File.Create(fileSavePath);
+                        await item.CopyToAsync(stream);
+                    }
                 }
 
                 newApp.ApplicationAttachment = attachments;
@@ -101,7 +120,6 @@ namespace duit_net_mvc.Controllers
             return View();
         }
 
-        [Authorize]
         public IActionResult Privacy()
         {
             return View();
